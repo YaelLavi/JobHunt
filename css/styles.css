@@ -275,9 +275,10 @@ p { margin: 0 0 16px; }
 }
 
 /* ===========================================================
-   Mobile timeline (hidden on desktop)
+   Mobile progress strip (hidden on desktop) — compact summary
+   that opens the full step menu in the sidebar drawer
    =========================================================== */
-.timeline {
+.mobile-progress {
   display: none;
 }
 
@@ -421,19 +422,38 @@ p { margin: 0 0 16px; }
   .sidebar {
     position: fixed;
     inset-inline-start: 0;
-    top: 0;
+    inset-inline-end: 0;
     bottom: 0;
-    width: min(82vw, 320px);
+    top: auto;
+    width: 100%;
+    max-height: 75vh;
+    border-radius: 20px 20px 0 0;
     z-index: 110;
-    transform: translateX(-110%);
-    transition: transform 280ms cubic-bezier(.4,0,.2,1);
-    box-shadow: 12px 0 40px rgba(0,0,0,0.25);
+    transform: translateY(110%);
+    transition: transform 300ms cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.28);
+    padding-top: 14px;
+  }
+  .sidebar::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 2px;
+    margin: 0 auto 16px;
   }
   html[dir="rtl"] .sidebar {
-    transform: translateX(110%);
+    transform: translateY(110%);
   }
   .sidebar.is-open {
-    transform: translateX(0);
+    transform: translateY(0);
+  }
+  .sidebar-groups {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    mask-image: linear-gradient(to bottom, black calc(100% - 36px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 36px), transparent 100%);
   }
 
   .sidebar-overlay {
@@ -451,167 +471,87 @@ p { margin: 0 0 16px; }
     pointer-events: auto;
   }
 
-  /* Vertical journey timeline replaces the sidebar as primary nav on mobile */
-  .timeline {
-    display: block;
-    padding: 22px 22px 6px;
-    max-width: 880px;
-    margin: 0 auto;
-    width: 100%;
-  }
-  .timeline-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--jh-500);
-    margin: 0 0 16px;
+  /* Compact mobile progress strip — tap to open the full step drawer.
+     Replaces the long inline timeline with a single-line summary. */
+  .mobile-progress {
     display: flex;
     align-items: center;
-    gap: 7px;
-  }
-  .timeline-track {
-    position: relative;
-  }
-  .timeline-line {
-    position: absolute;
-    top: 14px;
-    bottom: 14px;
-    inset-inline-start: 13px;
-    width: 2px;
-    background: var(--jh-200);
-  }
-  .timeline-item {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    position: relative;
-    background: transparent;
-    border: none;
+    gap: 12px;
     width: 100%;
-    text-align: right;
+    margin: 14px 0 18px;
+    padding: 12px 14px;
+    background: #ffffff;
+    border: 1px solid var(--jh-100);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
     font-family: inherit;
+    text-align: right;
     cursor: pointer;
-    padding: 7px 0;
-    border-radius: var(--radius-sm);
-    transition: transform var(--transition);
+    transition: transform var(--transition), box-shadow var(--transition);
   }
-  .timeline-item:focus-visible {
-    outline: 2px solid var(--jh-500);
-    outline-offset: 2px;
+  .mobile-progress:hover,
+  .mobile-progress:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 28px rgba(0, 102, 102, 0.14);
+    outline: none;
   }
-  .timeline-dot {
-    flex: 0 0 28px;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
+  .mobile-progress-icon {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    background: var(--jh-bg);
+    font-size: 18px;
+    background: var(--jh-50);
     color: var(--jh-500);
-    border: 2px solid var(--jh-200);
-    z-index: 1;
-    transition: all var(--transition);
   }
-  .timeline-item.is-active .timeline-dot {
-    background: var(--jh-accent);
-    color: var(--jh-accent-text);
-    border-color: var(--jh-accent);
-    box-shadow: 0 0 0 4px var(--jh-accent-soft);
-    transform: scale(1.08);
-  }
-  .timeline-item.is-done .timeline-dot {
-    color: var(--jh-accent);
-    border-color: var(--jh-accent);
-  }
-  .timeline-label {
-    font-size: 14px;
-    color: var(--jh-600);
-    transition: color var(--transition), font-weight var(--transition);
-  }
-  .timeline-item.is-active .timeline-label {
-    color: var(--jh-800);
-    font-weight: 700;
-    font-size: 15px;
-  }
-
-  /* collapse the timeline to a horizontal scroller of dots when not expanded */
-  .timeline.is-collapsed .timeline-track {
+  .mobile-progress-text {
+    flex: 1;
+    min-width: 0;
     display: flex;
-    gap: 18px;
-    overflow-x: auto;
-    padding: 4px 2px 12px;
-    scrollbar-width: thin;
-  }
-  .timeline.is-collapsed .timeline-line { display: none; }
-  .timeline.is-collapsed .timeline-item {
     flex-direction: column;
-    width: auto;
-    flex: 0 0 auto;
-    gap: 6px;
-    padding: 4px 2px;
+    gap: 5px;
   }
-  .timeline.is-collapsed .timeline-label {
+  .mobile-progress-step {
     font-size: 11.5px;
-    max-width: 64px;
-    text-align: center;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: var(--jh-400);
+  }
+  .mobile-progress-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--jh-800);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .timeline.is-collapsed .timeline-item.is-active .timeline-label {
-    font-size: 12px;
+  .mobile-progress-track {
+    display: block;
+    height: 4px;
+    border-radius: 4px;
+    background: var(--jh-100);
+    overflow: hidden;
+    margin-top: 2px;
   }
-  .timeline-expand {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: transparent;
-    border: none;
-    color: var(--jh-500);
-    font-family: inherit;
-    font-size: 12.5px;
-    font-weight: 700;
-    cursor: pointer;
-    padding: 6px 4px;
-    margin-bottom: 8px;
+  .mobile-progress-fill {
+    display: block;
+    height: 100%;
+    background: var(--jh-accent);
+    border-radius: 4px;
+    transition: width 320ms ease;
   }
-  .timeline-expand i { font-size: 15px; transition: transform var(--transition); }
-  .timeline.is-collapsed .timeline-expand i { transform: rotate(-90deg); }
+  .mobile-progress-chevron {
+    flex: 0 0 auto;
+    font-size: 18px;
+    color: var(--jh-300);
+  }
 
   .content {
     padding: 8px 18px 56px;
   }
   .content-card {
     padding: 24px 22px;
-    border-radius: var(--radius-md);
-  }
-  .step-title {
-    font-size: 23px;
-    gap: 10px;
-  }
-  .step-title-icon {
-    width: 42px;
-    height: 42px;
-    font-size: 21px;
-    border-radius: 11px;
-  }
-  .step-body {
-    font-size: 15.5px;
-  }
-  .content-nav {
-    flex-direction: column-reverse;
-    align-items: stretch;
-  }
-  .nav-btn {
-    justify-content: center;
-  }
-}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+  
